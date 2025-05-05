@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from dotenv import load_dotenv
-
+from typing import Optional, Union
 # Load environment variables
 load_dotenv()
 
@@ -35,7 +35,7 @@ class TeamRegistration(BaseModel):
     member1Usn: str
     member1Branch: str
     member2Name: str = ""
-    member2Email: EmailStr = None
+    member2Email: Union[EmailStr, str, None] = ""
     member2Usn: str = ""
     member2Branch: str = ""
 
@@ -52,7 +52,7 @@ async def register_team(data: TeamRegistration):
     existing = await collection.find_one({"teamName": data.teamName})
     if existing:
         raise HTTPException(status_code=400, detail="Team name already registered.")
-
+     # Debugging line to check the data being inserted
     # Insert into MongoDB
     await collection.insert_one(data.dict())
     return {"message": "Registration successful"}
