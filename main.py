@@ -60,7 +60,7 @@ async def register_team(data: TeamRegistration):
 def extract_year(usn: str) -> str:
     """Extract year from USN (e.g., '4MT23EC045' -> '23')"""
     usn = usn.strip().upper()
-    return usn[3:5]
+    return "20" + usn[3:5]
 
 def extract_branch(usn: str) -> str:
     """Extract branch from USN (e.g., '4MT23EC045' -> 'EC')"""
@@ -98,3 +98,20 @@ async def participants_by_branch():
                 # Check if the branch is valid (e.g., 'EC', 'CS', etc.)
                 branch_counts[branch] = branch_counts.get(branch, 0) + 1
     return {"participants_by_branch": branch_counts}
+
+@app.get("/api/registrations")
+async def get_registrations():
+    registrations = []
+    async for doc in collection.find():
+        m1_usn = doc.get("member1Usn", "").strip()
+        m2_usn = doc.get("member2Usn", "").strip()
+        registrations.append({
+            "team_name": doc.get("teamName", ""),
+            "member1": doc.get("member1Name", ""),
+            "member1_year": extract_year(m1_usn),
+            "member1_branch": extract_branch(m1_usn),
+            "member2": doc.get("member2Name", ""),
+            "member2_year": extract_year(m2_usn) if len(m2_usn) > 0 else "",
+            "member2_branch": extract_branch(m2_usn) if len(m2_usn) > 0 else "",
+        })
+    return {"registrations": registrations}
